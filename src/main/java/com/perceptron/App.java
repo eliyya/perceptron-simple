@@ -1,47 +1,43 @@
 package com.perceptron;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.google.gson.Gson;
 import com.perceptron.Perceptron.Data;
 
 public class App {
 
     public static final String MODEL_FILE = "model.json";
-    static final Data[] AND_DATA = {
-            new Data(new double[] { 0, 0 }, 0),
-            new Data(new double[] { 0, 1 }, 0),
-            new Data(new double[] { 1, 0 }, 0),
-            new Data(new double[] { 1, 1 }, 1),
-    };
-    static final Data[] OR_DATA = {
-            new Data(new double[] { 0, 0 }, 0),
-            new Data(new double[] { 0, 1 }, 1),
-            new Data(new double[] { 1, 0 }, 1),
-            new Data(new double[] { 1, 1 }, 1),
-    };
+    public static final String DATA_FILE = "data.json";
+
+    public static Data[] loadData(String filePath) throws IOException {
+        var gson = new Gson();
+        var json = Files.readString(Path.of(filePath));
+        return gson.fromJson(json, Data[].class);
+    }
+
+    public static void saveData(String filePath, Data[] data) throws IOException {
+        var gson = new Gson();
+        Files.writeString(Path.of(filePath), gson.toJson(data));
+    }
 
     public static void main(String[] args) throws IOException {
-        var data = OR_DATA;
+        var data = loadData(DATA_FILE);
 
-        var p = new Perceptron(2, 0.1);
+        var p = new Perceptron(data[0].inputs().length, 0.1);
         System.out.println("Seed usada: " + ConsoleColor.YELLOW + p.seed() + ConsoleColor.RESET);
         System.out.println("Antes de entrenar:");
         printPredictions(p, data);
 
-        p.train(data, 10);
+        p.train(data, 20);
         System.out.println("Despues de entrenar:");
         printPredictions(p, data);
         IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
                 p.accuracy(data) * 100));
 
         p.saveModel(MODEL_FILE);
-        System.out.println("Modelo guardado en: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
-
-        var loaded = Perceptron.loadModel(MODEL_FILE);
-        System.out.println("Modelo cargado desde: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
-        System.out.println("Predicciones con modelo cargado:");
-        printPredictions(loaded, data);
-        IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
-                loaded.accuracy(data) * 100));
     }
 
     private static void printPredictions(Perceptron p, Data[] data) {
