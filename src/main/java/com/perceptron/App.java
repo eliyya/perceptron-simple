@@ -52,13 +52,14 @@ public class App {
 
     private static void printPredictions(Network p, Data[] data) {
         for (var i = 0; i < data.length; i++) {
-            var pred = Network.activation(p.predict(data[i].inputs()));
-            var ok = pred == ((int) data[i].target());
+            var pred = p.predict(data[i].inputs());
+            var rounded = (int) Math.round(pred);
+            var ok = rounded == ((int) data[i].target());
             String line = String.format(
-                    "  %d , %d -> %d (esperado: %d)",
+                    "  %d , %d -> %.4f (esperado: %d)",
                     (int) data[i].inputs()[0],
                     (int) data[i].inputs()[1],
-                    (int) pred,
+                    pred,
                     (int) data[i].target());
             if (ok) {
                 IO.print(ConsoleColor.GREEN + line + ConsoleColor.RESET + "\n");

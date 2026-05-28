@@ -53,12 +53,12 @@ public class Network {
         return seed;
     }
 
-    public double[] predict(double[] inputs) {
+    public double predict(double[] inputs) {
         var outputs = inputs;
         for (Layer layer : this.layers) {
             outputs = layer.forward(outputs);
         }
-        return outputs;
+        return outputs[0];
     }
 
     public void train(Data[] data, int epochs) {
@@ -100,7 +100,8 @@ public class Network {
         }
 
         var gson = new GsonBuilder().setPrettyPrinting().create();
-        Files.writeString(Path.of(filePath), gson.toJson(new NetworkModelData(model, learningRate, seed)));
+        Files.writeString(Path.of(filePath),
+                gson.toJson(new NetworkModelData(learningRate, seed, model)));
     }
 
     public static Network loadModel(String filePath) throws IOException {
@@ -114,7 +115,7 @@ public class Network {
         var correct = 0;
         for (var i = 0; i < data.length; i++) {
             var pred = predict(data[i].inputs());
-            if (Network.activation(pred) == (int) Math.round(data[i].target()))
+            if ((int) Math.round(pred) == (int) Math.round(data[i].target()))
                 correct++;
         }
         return (double) correct / data.length;
@@ -125,10 +126,6 @@ public class Network {
         T apply(double[] values);
     }
 
-    public record NetworkModelData(LayerModelData[] layers, double learningRate, long seed) {
-    }
-
-    public static int activation(double[] output) {
-        return (int) Math.round(output[0]);
+    public record NetworkModelData(double learningRate, long seed, LayerModelData[] layers) {
     }
 }

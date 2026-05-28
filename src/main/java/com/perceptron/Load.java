@@ -21,8 +21,8 @@ public class Load {
             try {
                 var x1 = Double.parseDouble(parts[0]);
                 var x2 = Double.parseDouble(parts[1]);
-                var pred = model.predict(new double[]{x1, x2})[0];
-                var rounded = (int) Math.round(pred);
+                var pred = model.predict(new double[]{x1, x2});
+                var rounded = (int) pred;
 
                 var color = rounded == 1 ? ConsoleColor.GREEN : ConsoleColor.RED;
                 IO.print("  -> " + color + rounded + ConsoleColor.RESET + "\n");
