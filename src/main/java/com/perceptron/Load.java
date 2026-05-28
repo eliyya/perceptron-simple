@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class Load {
     public static void main(String[] args) throws IOException {
-        var model = Perceptron.loadModel(App.MODEL_FILE);
+        var model = Neuron.loadModel(App.MODEL_FILE);
         IO.println("Modelo cargado desde: " + App.MODEL_FILE);
         IO.println("Escribe 'q' para terminar.\n");
 

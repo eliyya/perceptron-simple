@@ -1,7 +1,7 @@
 package com.perceptron;
 
 import java.io.IOException;
-import com.perceptron.Perceptron.Data;
+import com.perceptron.Neuron.Data;
 
 public class App {
 
@@ -18,36 +18,45 @@ public class App {
             new Data(new double[] { 1, 0 }, 1),
             new Data(new double[] { 1, 1 }, 1),
     };
+    static final Data[] XOR_DATA = {
+            new Data(new double[] { 0, 0 }, 0),
+            new Data(new double[] { 0, 1 }, 1),
+            new Data(new double[] { 1, 0 }, 1),
+            new Data(new double[] { 1, 1 }, 0),
+    };
 
     public static void main(String[] args) throws IOException {
-        var data = OR_DATA;
+        var data = XOR_DATA;
+        var inputCount = 2;
+        var learningRate = 0.1;
 
-        var p = new Perceptron(2, 0.1);
-        System.out.println("Seed usada: " + ConsoleColor.YELLOW + p.seed() + ConsoleColor.RESET);
+        var layer = new Layer(inputCount, 2, learningRate);
+        var output = new Layer(inputCount, 1, learningRate, layer.seed());
+        System.out.println("Seed usada: " + ConsoleColor.YELLOW + output.seed() + ConsoleColor.RESET);
         System.out.println("Antes de entrenar:");
-        printPredictions(p, data);
+        printPredictions(output, data);
 
-        p.train(data, 10);
+        // output.train(data, 10);
         System.out.println("Despues de entrenar:");
-        printPredictions(p, data);
-        IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
-                p.accuracy(data) * 100));
+        printPredictions(output, data);
+        // IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
+        //         output.accuracy(data) * 100));
 
-        p.saveModel(MODEL_FILE);
+        // output.saveModel(MODEL_FILE);
         System.out.println("Modelo guardado en: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
 
-        var loaded = Perceptron.loadModel(MODEL_FILE);
+        var loaded = Neuron.loadModel(MODEL_FILE);
         System.out.println("Modelo cargado desde: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
         System.out.println("Predicciones con modelo cargado:");
-        printPredictions(loaded, data);
+        // printPredictions(loaded, data);
         IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
                 loaded.accuracy(data) * 100));
     }
 
-    private static void printPredictions(Perceptron p, Data[] data) {
+    private static void printPredictions(Layer p, Data[] data) {
         for (var i = 0; i < data.length; i++) {
             var pred = p.predict(data[i].inputs());
-            var ok = pred == data[i].target();
+            var ok = (int) pred[0] == data[i].target();
             String line = String.format(
                     "  %d , %d -> %d (esperado: %d)",
                     (int) data[i].inputs()[0],
