@@ -39,6 +39,15 @@
             </properties>
 
         </profile>
+
+        <profile>
+            <id>grid</id>
+
+            <properties>
+                <exec.mainClass>com.perceptron.GridWindow</exec.mainClass>
+            </properties>
+
+        </profile>
     </profiles>
 
     <build>

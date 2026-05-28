@@ -10,3 +10,4 @@ target/
 *.swo
 *~
 .DS_Store
+model.json
