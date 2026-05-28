@@ -1,33 +1,26 @@
 package com.perceptron;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.google.gson.Gson;
 import com.perceptron.Neuron.Data;
 
 public class App {
 
     public static final String MODEL_FILE = "model.json";
-    static final Data[] AND_DATA = {
-            new Data(new double[] { 0, 0 }, 0),
-            new Data(new double[] { 0, 1 }, 0),
-            new Data(new double[] { 1, 0 }, 0),
-            new Data(new double[] { 1, 1 }, 1),
-    };
-    static final Data[] OR_DATA = {
-            new Data(new double[] { 0, 0 }, 0),
-            new Data(new double[] { 0, 1 }, 1),
-            new Data(new double[] { 1, 0 }, 1),
-            new Data(new double[] { 1, 1 }, 1),
-    };
-    static final Data[] XOR_DATA = {
-            new Data(new double[] { 0, 0 }, 0),
-            new Data(new double[] { 0, 1 }, 1),
-            new Data(new double[] { 1, 0 }, 1),
-            new Data(new double[] { 1, 1 }, 0),
-    };
+    public static final String DATA_FILE = "data.json";
+
+    public static Data[] loadData(String filePath) throws IOException {
+        var gson = new Gson();
+        var json = Files.readString(Path.of(filePath));
+        return gson.fromJson(json, Data[].class);
+    }
 
     public static void main(String[] args) throws IOException {
-        var data = XOR_DATA;
-        var inputCount = 2;
+        var data = loadData(DATA_FILE);
+        var inputCount = data[0].inputs().length;
         var learningRate = 0.5;
  
         var net = new Network(inputCount, learningRate, 2, 1);
