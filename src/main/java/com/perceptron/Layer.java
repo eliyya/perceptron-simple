@@ -1,17 +1,28 @@
 package com.perceptron;
 
-import com.perceptron.Neuron.ModelData;
+import com.perceptron.Neuron.NeuronModelData;
 
 public class Layer {
-    Neuron[] neurons;
-    private long seed;
+    private final Neuron[] neurons;
+    private final long seed;
+    private double[] lastInputs;
+
+    public Layer(LayerModelData data, double learningRate, long seed) {
+        this.seed = seed;
+        var length = data.neurons.length;
+        this.neurons = new Neuron[length];
+        for (int i = 0; i < length; i++) {
+            var neuron = data.neurons[i];
+            this.neurons[i] = new Neuron(neuron.weights(), neuron.bias(), learningRate, seed);
+        }
+    }
 
     public Layer(int inputCount, int neuronCount, double learningRate, long seed) {
         this.neurons = new Neuron[neuronCount];
         this.seed = seed;
 
         for (int i = 0; i < neuronCount; i++) {
-            this.neurons[i] = new Neuron(inputCount, learningRate, seed);
+            this.neurons[i] = new Neuron(inputCount, learningRate, seed + i + 1);
         }
     }
 
@@ -19,27 +30,39 @@ public class Layer {
         return this.seed;
     }
 
-    public ModelData[] model() {
-        var data = new ModelData[neurons.length];
+    public LayerModelData model() {
+        var data = new NeuronModelData[neurons.length];
         for (int i = 0; i < neurons.length; i++) {
-            data[i] = neurons[i].model();            
+            data[i] = neurons[i].model();
         }
-        return data;
+        
+        return new LayerModelData(data);
     }
 
-    public double[] predict(double[] inputs) {
-        double[] outputs = new double[this.neurons.length];
-
-        for (int i = 0; i < this.neurons.length; i++) {
-            outputs[i] = this.neurons[i].predict(inputs);
+    public double[] forward(double[] inputs) {
+        lastInputs = inputs.clone();
+        var outputs = new double[neurons.length];
+        for (int i = 0; i < neurons.length; i++) {
+            outputs[i] = neurons[i].predict(inputs);
         }
-
         return outputs;
     }
 
-    public void adjust(double delta) {
-        for (int i = 0; i < neurons.length; i++) {
-            neurons[i].adjust(delta);
+    public double[] backward(double[] deltas) {
+        var prevDeltas = new double[lastInputs.length];
+        for (int j = 0; j < lastInputs.length; j++) {
+            double sum = 0;
+            for (int i = 0; i < neurons.length; i++) {
+                sum += deltas[i] * neurons[i].weights[j];
+            }
+            prevDeltas[j] = sum;
         }
+        for (int i = 0; i < neurons.length; i++) {
+            neurons[i].train(deltas[i]);
+        }
+        return prevDeltas;
+    }
+
+    public record LayerModelData(NeuronModelData[] neurons) {
     }
 }

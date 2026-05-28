@@ -1,18 +1,15 @@
 package com.perceptron;
 
-import com.google.gson.Gson;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Random;
 
 public class Neuron {
 
-    private final double[] weights;
-    private double bias;
+    double[] weights;
+    double bias;
     private final double learningRate;
-    private long seed;
-    private double previousOutput = 0;
+    private final long seed;
+    private double[] lastInputs;
+    private double lastOutput;
 
     public Neuron(int numInputs, double learningRate, long seed) {
         this.learningRate = learningRate;
@@ -25,9 +22,10 @@ public class Neuron {
         bias = rng.nextDouble() * 2 - 1;
     }
 
-    private Neuron(double[] weights, double bias, double learningRate) {
+    public Neuron(double[] weights, double bias, double learningRate, long seed) {
         this.weights = weights.clone();
         this.bias = bias;
+        this.seed = seed;
         this.learningRate = learningRate;
     }
 
@@ -35,33 +33,40 @@ public class Neuron {
         return this.seed;
     }
 
+    public static double sigmoid(double x) {
+        return 1.0 / (1.0 + Math.exp(-x));
+    }
+
     public double predict(double[] inputs) {
+        lastInputs = inputs.clone();
         var sum = bias;
         for (var i = 0; i < weights.length; i++) {
             sum += weights[i] * inputs[i];
         }
-        previousOutput = sum;
-        return sum;
+        lastOutput = sigmoid(sum);
+        return lastOutput;
     }
 
-    public ModelData model() {
-        return new ModelData(weights, bias, learningRate);
+    public double lastOutput() {
+        return lastOutput;
     }
 
-    public static Neuron loadModel(String filePath) throws IOException {
-        var gson = new Gson();
-        var data = gson.fromJson(Files.readString(Path.of(filePath)), ModelData.class);
-        return new Neuron(data.weights, data.bias, data.learningRate);
+    public double sigmoidDeriv() {
+        return lastOutput * (1.0 - lastOutput);
     }
 
-    public void adjust(double delta) {
+    public void train(double delta) {
         for (int i = 0; i < weights.length; i++) {
-            weights[i] += learningRate * delta * previousOutput;
+            weights[i] += learningRate * delta * lastInputs[i];
         }
         bias += learningRate * delta;
     }
 
-    public record ModelData(double[] weights, double bias, double learningRate) {
+    public NeuronModelData model() {
+        return new NeuronModelData(weights, bias);
+    }
+
+    public record NeuronModelData(double[] weights, double bias) {
     }
     public record Data(double[] inputs, double target) {
     }

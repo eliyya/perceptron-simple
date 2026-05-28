@@ -28,39 +28,37 @@ public class App {
     public static void main(String[] args) throws IOException {
         var data = XOR_DATA;
         var inputCount = 2;
-        var learningRate = 0.1;
+        var learningRate = 0.5;
  
         var net = new Network(inputCount, learningRate, 2, 1);
         System.out.println("Seed usada: " + ConsoleColor.YELLOW + net.seed() + ConsoleColor.RESET);
         System.out.println("Antes de entrenar:");
         printPredictions(net, data);
 
-        net.train(data, 1000);
+        net.train(data, 10000);
         System.out.println("Despues de entrenar:");
         printPredictions(net, data);
-        // IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
-        //         output.accuracy(data) * 100));
 
         net.saveModel(MODEL_FILE);
         System.out.println("Modelo guardado en: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
 
-        // var loaded = Network.loadModel(MODEL_FILE);
+        var loaded = Network.loadModel(MODEL_FILE);
         System.out.println("Modelo cargado desde: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
         System.out.println("Predicciones con modelo cargado:");
-        // printPredictions(loaded, data);
+        printPredictions(loaded, data);
         IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
-                net.accuracy(data) * 100));
+                loaded.accuracy(data) * 100));
     }
 
     private static void printPredictions(Network p, Data[] data) {
         for (var i = 0; i < data.length; i++) {
-            var pred = p.predict(data[i].inputs());
-            var ok = (int) pred[0] == data[i].target();
+            var pred = Network.activation(p.predict(data[i].inputs()));
+            var ok = pred == ((int) data[i].target());
             String line = String.format(
                     "  %d , %d -> %d (esperado: %d)",
                     (int) data[i].inputs()[0],
                     (int) data[i].inputs()[1],
-                    (int) pred[0], 
+                    (int) pred,
                     (int) data[i].target());
             if (ok) {
                 IO.print(ConsoleColor.GREEN + line + ConsoleColor.RESET + "\n");
