@@ -1,7 +1,6 @@
 package com.perceptron;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,17 +12,12 @@ public class Neuron {
     private double bias;
     private final double learningRate;
     private long seed;
+    private double previousOutput = 0;
 
-    public Neuron(int numInputs, double learningRate) {
-        this(numInputs, learningRate, null);
-    }
-
-    public Neuron(int numInputs, double learningRate, Long seed) {
+    public Neuron(int numInputs, double learningRate, long seed) {
         this.learningRate = learningRate;
         this.weights = new double[numInputs];
-        this.seed = (seed != null)
-                ? seed
-                : System.currentTimeMillis();
+        this.seed = seed;
         var rng = new Random(this.seed);
         for (var i = 0; i < numInputs; i++) {
             weights[i] = rng.nextDouble() * 2 - 1;
@@ -46,37 +40,12 @@ public class Neuron {
         for (var i = 0; i < weights.length; i++) {
             sum += weights[i] * inputs[i];
         }
+        previousOutput = sum;
         return sum;
     }
 
-    public void train(Data[] data, int epochs) {
-        for (var ep = 0; ep < epochs; ep++) {
-            for (var s = 0; s < data.length; s++) {
-                var prediction = predict(data[s].inputs());
-                var error = data[s].target - prediction;
-                if (error != 0) {
-                    for (var i = 0; i < weights.length; i++) {
-                        weights[i] += learningRate * error * data[s].inputs()[i];
-                    }
-                    bias += learningRate * error;
-                }
-            }
-        }
-    }
-
-    public double accuracy(Data[] data) {
-        var correct = 0;
-        for (var i = 0; i < data.length; i++) {
-            if (predict(data[i].inputs) == data[i].target)
-                correct++;
-        }
-        return (double) correct / data.length;
-    }
-
-    public void saveModel(String filePath) throws IOException {
-        var data = new ModelData(weights, bias, learningRate);
-        var gson = new GsonBuilder().setPrettyPrinting().create();
-        Files.writeString(Path.of(filePath), gson.toJson(data));
+    public ModelData model() {
+        return new ModelData(weights, bias, learningRate);
     }
 
     public static Neuron loadModel(String filePath) throws IOException {
@@ -85,9 +54,15 @@ public class Neuron {
         return new Neuron(data.weights, data.bias, data.learningRate);
     }
 
-    private record ModelData(double[] weights, double bias, double learningRate) {
+    public void adjust(double delta) {
+        for (int i = 0; i < weights.length; i++) {
+            weights[i] += learningRate * delta * previousOutput;
+        }
+        bias += learningRate * delta;
     }
 
-    public record Data(double[] inputs, int target) {
+    public record ModelData(double[] weights, double bias, double learningRate) {
+    }
+    public record Data(double[] inputs, double target) {
     }
 }

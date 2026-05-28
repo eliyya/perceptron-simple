@@ -1,28 +1,30 @@
 package com.perceptron;
 
-import com.perceptron.Neuron.Data;
+import com.perceptron.Neuron.ModelData;
 
 public class Layer {
     Neuron[] neurons;
     private long seed;
 
-    public Layer(int inputCount, int neuronCount, double learningRate) {
-        this(inputCount, neuronCount, learningRate, null);
-    }
-
-    public Layer(int inputCount, int neuronCount, double learningRate, Long seed) {
+    public Layer(int inputCount, int neuronCount, double learningRate, long seed) {
         this.neurons = new Neuron[neuronCount];
-        this.seed = (seed != null)
-                ? seed
-                : System.currentTimeMillis();
+        this.seed = seed;
 
         for (int i = 0; i < neuronCount; i++) {
-            this.neurons[i] = new Neuron(inputCount, learningRate);
+            this.neurons[i] = new Neuron(inputCount, learningRate, seed);
         }
     }
 
     public long seed() {
         return this.seed;
+    }
+
+    public ModelData[] model() {
+        var data = new ModelData[neurons.length];
+        for (int i = 0; i < neurons.length; i++) {
+            data[i] = neurons[i].model();            
+        }
+        return data;
     }
 
     public double[] predict(double[] inputs) {
@@ -33,5 +35,11 @@ public class Layer {
         }
 
         return outputs;
+    }
+
+    public void adjust(double delta) {
+        for (int i = 0; i < neurons.length; i++) {
+            neurons[i].adjust(delta);
+        }
     }
 }

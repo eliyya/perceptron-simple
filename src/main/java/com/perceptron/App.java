@@ -29,31 +29,30 @@ public class App {
         var data = XOR_DATA;
         var inputCount = 2;
         var learningRate = 0.1;
-
-        var layer = new Layer(inputCount, 2, learningRate);
-        var output = new Layer(inputCount, 1, learningRate, layer.seed());
-        System.out.println("Seed usada: " + ConsoleColor.YELLOW + output.seed() + ConsoleColor.RESET);
+ 
+        var net = new Network(inputCount, learningRate, 2, 1);
+        System.out.println("Seed usada: " + ConsoleColor.YELLOW + net.seed() + ConsoleColor.RESET);
         System.out.println("Antes de entrenar:");
-        printPredictions(output, data);
+        printPredictions(net, data);
 
-        // output.train(data, 10);
+        net.train(data, 1000);
         System.out.println("Despues de entrenar:");
-        printPredictions(output, data);
+        printPredictions(net, data);
         // IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
         //         output.accuracy(data) * 100));
 
-        // output.saveModel(MODEL_FILE);
+        net.saveModel(MODEL_FILE);
         System.out.println("Modelo guardado en: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
 
-        var loaded = Neuron.loadModel(MODEL_FILE);
+        // var loaded = Network.loadModel(MODEL_FILE);
         System.out.println("Modelo cargado desde: " + ConsoleColor.YELLOW + MODEL_FILE + ConsoleColor.RESET);
         System.out.println("Predicciones con modelo cargado:");
         // printPredictions(loaded, data);
         IO.print(String.format("Precision:" + ConsoleColor.YELLOW + " %.0f%%\n" + ConsoleColor.RESET,
-                loaded.accuracy(data) * 100));
+                net.accuracy(data) * 100));
     }
 
-    private static void printPredictions(Layer p, Data[] data) {
+    private static void printPredictions(Network p, Data[] data) {
         for (var i = 0; i < data.length; i++) {
             var pred = p.predict(data[i].inputs());
             var ok = (int) pred[0] == data[i].target();
@@ -61,7 +60,8 @@ public class App {
                     "  %d , %d -> %d (esperado: %d)",
                     (int) data[i].inputs()[0],
                     (int) data[i].inputs()[1],
-                    pred, data[i].target());
+                    (int) pred[0], 
+                    (int) data[i].target());
             if (ok) {
                 IO.print(ConsoleColor.GREEN + line + ConsoleColor.RESET + "\n");
             } else {
